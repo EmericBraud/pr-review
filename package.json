@@ -1,0 +1,519 @@
+{
+  "name": "pr-review",
+  "displayName": "PR Review",
+  "description": "Review GitHub pull requests in VS Code: full diff or commit by commit, viewed files, CI, review comments.",
+  "version": "0.1.0",
+  "publisher": "emericbraud",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "SCM Providers",
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -watch -p .",
+    "test": "tsc -p . && node --test out/*.test.js",
+    "package": "tsc -p . && vsce package --allow-missing-repository --skip-license",
+    "test:integration": "tsc -p . && node out/test/runIntegration.js"
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "prReview",
+          "title": "PR Review",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "prReview": [
+        {
+          "id": "prReview.prs",
+          "name": "Pull Requests"
+        },
+        {
+          "id": "prReview.review",
+          "name": "Review"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "prReview.prs",
+        "contents": "No GitHub repository found in this workspace.\nOpen a folder whose git remote points to github.com.",
+        "when": "prReview.noRepo"
+      },
+      {
+        "view": "prReview.review",
+        "contents": "No review in progress.\nHover a pull request above and click $(eye) to review it, or:\n[Review a Pull Request](command:prReview.review)"
+      }
+    ],
+    "commands": [
+      {
+        "command": "prReview.refreshPrs",
+        "title": "Refresh Pull Requests",
+        "category": "PR Review",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "prReview.openPr",
+        "title": "Open Pull Request Overview",
+        "category": "PR Review",
+        "icon": "$(info)"
+      },
+      {
+        "command": "prReview.review",
+        "title": "Review Pull Request",
+        "category": "PR Review",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "prReview.reviewCommits",
+        "title": "Review Commit by Commit",
+        "category": "PR Review",
+        "icon": "$(git-commit)"
+      },
+      {
+        "command": "prReview.checkout",
+        "title": "Checkout Pull Request Branch",
+        "category": "PR Review",
+        "icon": "$(git-branch)"
+      },
+      {
+        "command": "prReview.openOnGitHub",
+        "title": "Open on GitHub",
+        "category": "PR Review",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "prReview.showPrDetails",
+        "title": "Show Pull Request Overview",
+        "category": "PR Review",
+        "icon": "$(info)"
+      },
+      {
+        "command": "prReview.toggleMode",
+        "title": "Toggle Review Mode (Full PR / Commit by Commit)",
+        "category": "PR Review"
+      },
+      {
+        "command": "prReview.modeFull",
+        "title": "Switch to Full PR Review",
+        "category": "PR Review",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "prReview.modeCommits",
+        "title": "Switch to Commit-by-Commit Review",
+        "category": "PR Review",
+        "icon": "$(git-commit)"
+      },
+      {
+        "command": "prReview.nextFile",
+        "title": "Mark File as Viewed & Open Next",
+        "category": "PR Review",
+        "icon": "$(check)"
+      },
+      {
+        "command": "prReview.prevCommit",
+        "title": "Previous Commit",
+        "category": "PR Review",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "prReview.nextCommit",
+        "title": "Next Commit",
+        "category": "PR Review",
+        "icon": "$(arrow-down)"
+      },
+      {
+        "command": "prReview.openDiff",
+        "title": "Open Diff",
+        "category": "PR Review"
+      },
+      {
+        "command": "prReview.openFile",
+        "title": "Open File in Workspace",
+        "category": "PR Review",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "prReview.openFileDiff",
+        "title": "Open Pull Request Diff",
+        "category": "PR Review",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "prReview.refreshReview",
+        "title": "Refresh Review",
+        "category": "PR Review",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "prReview.submit",
+        "title": "Submit Review…",
+        "category": "PR Review",
+        "icon": "$(check-all)"
+      },
+      {
+        "command": "prReview.discard",
+        "title": "Discard Pending Review",
+        "category": "PR Review",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "prReview.exit",
+        "title": "Exit Review",
+        "category": "PR Review",
+        "icon": "$(close)"
+      },
+      {
+        "command": "prReview.startReviewComment",
+        "title": "Start Review",
+        "category": "PR Review"
+      },
+      {
+        "command": "prReview.addReviewComment",
+        "title": "Add Review Comment",
+        "category": "PR Review"
+      },
+      {
+        "command": "prReview.addSingleComment",
+        "title": "Add Single Comment",
+        "category": "PR Review"
+      },
+      {
+        "command": "prReview.resolve",
+        "title": "Resolve Thread",
+        "category": "PR Review",
+        "icon": "$(check)"
+      },
+      {
+        "command": "prReview.unresolve",
+        "title": "Reopen Thread",
+        "category": "PR Review",
+        "icon": "$(issue-reopened)"
+      },
+      {
+        "command": "prReview.editComment",
+        "title": "Edit Comment",
+        "category": "PR Review",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "prReview.deleteComment",
+        "title": "Delete Comment",
+        "category": "PR Review",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "prReview.saveComment",
+        "title": "Save",
+        "category": "PR Review"
+      },
+      {
+        "command": "prReview.cancelEdit",
+        "title": "Cancel",
+        "category": "PR Review"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "prReview.openDiff",
+          "when": "false"
+        },
+        {
+          "command": "prReview.startReviewComment",
+          "when": "false"
+        },
+        {
+          "command": "prReview.addReviewComment",
+          "when": "false"
+        },
+        {
+          "command": "prReview.addSingleComment",
+          "when": "false"
+        },
+        {
+          "command": "prReview.resolve",
+          "when": "false"
+        },
+        {
+          "command": "prReview.unresolve",
+          "when": "false"
+        },
+        {
+          "command": "prReview.editComment",
+          "when": "false"
+        },
+        {
+          "command": "prReview.saveComment",
+          "when": "false"
+        },
+        {
+          "command": "prReview.cancelEdit",
+          "when": "false"
+        },
+        {
+          "command": "prReview.deleteComment",
+          "when": "false"
+        },
+        {
+          "command": "prReview.toggleMode",
+          "when": "prReview.active"
+        },
+        {
+          "command": "prReview.modeFull",
+          "when": "prReview.active"
+        },
+        {
+          "command": "prReview.modeCommits",
+          "when": "prReview.active"
+        },
+        {
+          "command": "prReview.nextFile",
+          "when": "prReview.active"
+        },
+        {
+          "command": "prReview.prevCommit",
+          "when": "prReview.active"
+        },
+        {
+          "command": "prReview.nextCommit",
+          "when": "prReview.active"
+        },
+        {
+          "command": "prReview.refreshReview",
+          "when": "prReview.active"
+        },
+        {
+          "command": "prReview.submit",
+          "when": "prReview.active"
+        },
+        {
+          "command": "prReview.exit",
+          "when": "prReview.active"
+        },
+        {
+          "command": "prReview.showPrDetails",
+          "when": "prReview.active"
+        },
+        {
+          "command": "prReview.openFile",
+          "when": "prReview.active"
+        },
+        {
+          "command": "prReview.openFileDiff",
+          "when": "prReview.active"
+        },
+        {
+          "command": "prReview.discard",
+          "when": "prReview.pending"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "prReview.review",
+          "when": "view == prReview.prs",
+          "group": "navigation@1"
+        },
+        {
+          "command": "prReview.refreshPrs",
+          "when": "view == prReview.prs",
+          "group": "navigation@2"
+        },
+        {
+          "command": "prReview.modeCommits",
+          "when": "view == prReview.review && prReview.active && prReview.mode == full",
+          "group": "navigation@1"
+        },
+        {
+          "command": "prReview.modeFull",
+          "when": "view == prReview.review && prReview.active && prReview.mode == commits",
+          "group": "navigation@1"
+        },
+        {
+          "command": "prReview.prevCommit",
+          "when": "view == prReview.review && prReview.active && prReview.mode == commits",
+          "group": "navigation@2"
+        },
+        {
+          "command": "prReview.nextCommit",
+          "when": "view == prReview.review && prReview.active && prReview.mode == commits",
+          "group": "navigation@3"
+        },
+        {
+          "command": "prReview.submit",
+          "when": "view == prReview.review && prReview.active",
+          "group": "navigation@4"
+        },
+        {
+          "command": "prReview.showPrDetails",
+          "when": "view == prReview.review && prReview.active",
+          "group": "navigation@5"
+        },
+        {
+          "command": "prReview.refreshReview",
+          "when": "view == prReview.review && prReview.active",
+          "group": "navigation@6"
+        },
+        {
+          "command": "prReview.checkout",
+          "when": "view == prReview.review && prReview.active",
+          "group": "1_actions@1"
+        },
+        {
+          "command": "prReview.openOnGitHub",
+          "when": "view == prReview.review && prReview.active",
+          "group": "1_actions@2"
+        },
+        {
+          "command": "prReview.discard",
+          "when": "view == prReview.review && prReview.active && prReview.pending",
+          "group": "2_end@1"
+        },
+        {
+          "command": "prReview.exit",
+          "when": "view == prReview.review && prReview.active",
+          "group": "2_end@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "prReview.review",
+          "when": "view == prReview.prs && viewItem == pr",
+          "group": "inline@1"
+        },
+        {
+          "command": "prReview.checkout",
+          "when": "view == prReview.prs && viewItem == pr",
+          "group": "inline@2"
+        },
+        {
+          "command": "prReview.openOnGitHub",
+          "when": "view == prReview.prs && viewItem == pr",
+          "group": "inline@3"
+        },
+        {
+          "command": "prReview.openPr",
+          "when": "view == prReview.prs && viewItem == pr",
+          "group": "1_review@1"
+        },
+        {
+          "command": "prReview.review",
+          "when": "view == prReview.prs && viewItem == pr",
+          "group": "1_review@2"
+        },
+        {
+          "command": "prReview.reviewCommits",
+          "when": "view == prReview.prs && viewItem == pr",
+          "group": "1_review@3"
+        },
+        {
+          "command": "prReview.checkout",
+          "when": "view == prReview.prs && viewItem == pr",
+          "group": "2_git@1"
+        },
+        {
+          "command": "prReview.openOnGitHub",
+          "when": "view == prReview.prs && viewItem == pr",
+          "group": "2_git@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "prReview.nextFile",
+          "when": "resourceScheme == pr-review && prReview.active",
+          "group": "navigation@1"
+        },
+        {
+          "command": "prReview.openFile",
+          "when": "resourceScheme == pr-review && prReview.active",
+          "group": "navigation@2"
+        },
+        {
+          "command": "prReview.openFileDiff",
+          "when": "resourceScheme == file && prReview.active && resourcePath in prReview.filePaths",
+          "group": "navigation@1"
+        }
+      ],
+      "comments/commentThread/context": [
+        {
+          "command": "prReview.startReviewComment",
+          "when": "commentController == pr-review && !prReview.pending",
+          "group": "inline@1"
+        },
+        {
+          "command": "prReview.addReviewComment",
+          "when": "commentController == pr-review && prReview.pending",
+          "group": "inline@1"
+        },
+        {
+          "command": "prReview.addSingleComment",
+          "when": "commentController == pr-review && !prReview.pending",
+          "group": "inline@2"
+        }
+      ],
+      "comments/commentThread/title": [
+        {
+          "command": "prReview.resolve",
+          "when": "commentController == pr-review && commentThread == unresolved",
+          "group": "inline"
+        },
+        {
+          "command": "prReview.unresolve",
+          "when": "commentController == pr-review && commentThread == resolved",
+          "group": "inline"
+        }
+      ],
+      "comments/comment/title": [
+        {
+          "command": "prReview.editComment",
+          "when": "commentController == pr-review && comment == mine",
+          "group": "inline@1"
+        },
+        {
+          "command": "prReview.deleteComment",
+          "when": "commentController == pr-review && comment == mine",
+          "group": "inline@2"
+        }
+      ],
+      "comments/comment/context": [
+        {
+          "command": "prReview.cancelEdit",
+          "when": "commentController == pr-review",
+          "group": "inline@1"
+        },
+        {
+          "command": "prReview.saveComment",
+          "when": "commentController == pr-review",
+          "group": "inline@2"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "prReview.nextFile",
+        "key": "alt+n",
+        "when": "prReview.active && resourceScheme == pr-review"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@types/vscode": "1.90",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^4.0.0",
+    "typescript": "^5.9.3"
+  }
+}
